@@ -5,12 +5,13 @@ permissions:
 
 on:
   schedule:
-    - cron: "* * * * *"   # every 1 minute
+    - cron: "*/5 * * * *"   # every 5 minutes (most reliable on GitHub)
   workflow_dispatch:
 
 jobs:
   mirror:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,14 +20,14 @@ jobs:
         run: |
           curl -L "https://pub-39e459afc5e94b0ab76b05bb4bdcd798.r2.dev/c06d6812-3209-4d79-9a5b-cae1cc30862a.zip" -o new.zip
 
-      - name: Compare and update if changed
+      - name: Compare with existing pack
         run: |
           if [ -f resourcepack.zip ]; then
             OLD_HASH=$(sha1sum resourcepack.zip | cut -d ' ' -f1)
             NEW_HASH=$(sha1sum new.zip | cut -d ' ' -f1)
 
             if [ "$OLD_HASH" = "$NEW_HASH" ]; then
-              echo "No changes detected."
+              echo "No changes detected. Skipping update."
               rm new.zip
               exit 0
             fi
@@ -35,13 +36,14 @@ jobs:
           mv new.zip resourcepack.zip
           echo "Resource pack updated."
 
-      - name: Commit if changed
+      - name: Commit changes if needed
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
           git add resourcepack.zip
           git diff --cached --quiet || git commit -m "Update resource pack"
 
-      - name: Push changes
+      - name: Push changes safely
         run: |
+          git pull --rebase
           git push
