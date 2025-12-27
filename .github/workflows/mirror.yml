@@ -1,0 +1,25 @@
+name: Mirror Resource Pack
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # every 10 minutes
+  workflow_dispatch:
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download from R2
+        run: |
+          curl -L "https://pub-39e459afc5e94b0ab76b05bb4bdcd798.r2.dev/c06d6812-3209-4d79-9a5b-cae1cc30862a.zip" -o resourcepack.zip
+
+      - name: Commit if changed
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add resourcepack.zip
+          git diff --quiet || git commit -m "Update resource pack"
+
+      - name: Push
+        run: |
+          git push
