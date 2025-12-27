@@ -1,5 +1,8 @@
 name: Mirror Resource Pack
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: "*/10 * * * *"
